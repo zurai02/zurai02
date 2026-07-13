@@ -1,19 +1,55 @@
 server:
-  port: 2333
+  port: ${LAVALINK_PORT:-2333}
   address: 0.0.0.0
+
+spring:
+  main:
+    banner-mode: off
+  output:
+    ansi:
+      enabled: NEVER
+
+logging:
+  level:
+    root: INFO
+    lavalink: INFO
+    dev.lavalink.youtube: WARN
+  file:
+    path: ./logs/
 
 lavalink:
   plugins:
     - dependency: "dev.lavalink.youtube:youtube-plugin:1.13.5"
       snapshot: false
+    # Add more plugins here as needed
+
   server:
-    password: "${LAVALINK_PASSWORD:youshallnotpass}"
+    password: "${LAVALINK_PASSWORD}"
     sources:
-      youtube: false
+      youtube: false          # Handled by youtube-plugin instead
       bandcamp: true
       soundcloud: true
+      twitch: true
+      vimeo: true
       http: true
       local: false
+    bufferDurationMs: 400
+    frameBufferDurationMs: 5000
+    youtubePlaylistLoadLimit: 6
+    playerUpdateInterval: 5
+    soundcloudSearchEnabled: true
+
+    filters:
+      volume: true
+      equalizer: true
+      karaoke: true
+      timescale: true
+      tremolo: true
+      vibrato: true
+      distortion: true
+      rotation: true
+      channelMix: true
+      lowPass: true
 
 plugins:
   youtube:
@@ -21,7 +57,23 @@ plugins:
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
+    # Rotate clients to avoid rate limits
     clients:
       - MUSIC
       - ANDROID_TESTSUITE
       - WEB
+      - TVHTML5EMBEDDED
+    # OAuth2 token for WEB client (optional but recommended)
+    # oauth2:
+    #   refreshToken: "${YOUTUBE_REFRESH_TOKEN}"
+    #   skipInitialization: true
+    # Potoken for WEB client (required for some regions)
+    # potoken:
+    #   visitorData: "${YOUTUBE_VISITOR_DATA}"
+    #   poToken: "${YOUTUBE_PO_TOKEN}"
+
+  lavasrc:
+    # If you use lavasrc for Spotify/Apple Music, configure here
+    # sources:
+    #   spotify: true
+    #   appleMusic: true
