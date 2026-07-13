@@ -1,30 +1,130 @@
-[
+#!/usr/bin/env node
+/**
+ * Lavalink node health checker.
+ * Validates all configured nodes before bot startup.
+ *
+ * Usage:
+ *   node scripts/check-lavalink.js
+ */
+
+import { logger } from '../src/utils/logger.js';
+
+const NODES = [
   {
-    "host": "lavalinkv4.serenetia.com",
-    "port": 443,
-    "password": "https://seretia.link/discord",
-    "secure": true,
-    "name": "Serenetia"
+    host: 'lavalinkv4.serenetia.com',
+    port: 443,
+    password: 'https://seretia.link/discord',
+    secure: true,
+    name: 'Serenetia',
   },
   {
-    "host": "lavalink.jirayu.net",
-    "port": 443,
-    "password": "youshallnotpass",
-    "secure": true,
-    "name": "Jirayu"
+    host: 'lavalink.jirayu.net',
+    port: 443,
+    password: 'youshallnotpass',
+    secure: true,
+    name: 'Jirayu',
   },
   {
-    "host": "lava-v4.millohost.my.id",
-    "port": 443,
-    "password": "https://discord.gg/mjS5J2K3ep",
-    "secure": true,
-    "name": "MilloHost"
+    host: 'lava-v4.millohost.my.id',
+    port: 443,
+    password: 'https://discord.gg/mjS5J2K3ep',
+    secure: true,
+    name: 'MilloHost',
   },
   {
-    "host": "lavalink-v4.triniumhost.com",
-    "port": 443,
-    "password": "free",
-    "secure": true,
-    "name": "TriniumHost"
+    host: 'lavalink-v4.triniumhost.com',
+    port: 443,
+    password: 'free',
+    secure: true,
+    name: 'TriniumHost',
+  },
+];
+
+async function checkNode(node) {
+  const protocol = node.secure ? 'https' : 'http';
+  const url = `${protocol}://${node.host}:${node.port}/v4/stats`;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+
+    const response = await fetch(url, {
+      headers: { Authorization: node.password },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json().catch(() => null);
+
+    return {
+      name: node.name,
+      host: node.host,
+      healthy: true,
+      players: data?.players ?? null,
+      playingPlayers: data?.playingPlayers ?? null,
+      uptime: data?.uptime ?? null,
+    };
+  } catch (error) {
+    return {
+      name: node.name,
+      host: node.host,
+      healthy: false,
+      error: error.name === 'AbortError' ? 'Connection timed out' : error.message,
+    };
   }
-]
+}
+
+async function run() {
+  logger.info('Checking Lavalink nodes...', { event: 'lavalink.check.start', count: NODES.length });
+
+  const results = await Promise.all(NODES.map((node) => checkNode(node)));
+  const healthy = results.filter((r) => r.healthy);
+  const unhealthy = results.filter((r) => !r.healthy);
+
+  for (const result of results) {
+    if (result.healthy) {
+      logger.info(`Node ${result.name} is healthy`, {
+        event: 'lavalink.node.healthy',
+        node: result.name,
+        host: result.host,
+        players: result.players,
+        playingPlayers: result.playingPlayers,
+      });
+    } else {
+      logger.warn(`Node ${result.name} is unhealthy`, {
+        event: 'lavalink.node.unhealthy',
+        node: result.name,
+        host: result.host,
+        error: result.error,
+      });
+    }
+  }
+
+  logger.info('Lavalink check completed', {
+    event: 'lavalink.check.completed',
+    healthy: healthy.length,
+    unhealthy: unhealthy.length,
+    total: NODES.length,
+  });
+
+  if (unhealthy.length === NODES.length) {
+    throw new Error('All Lavalink nodes are unreachable');
+  }
+
+  if (unhealthy.length > 0) {
+    logger.warn('Some Lavalink nodes are unhealthy; bot will start with degraded music capability', {
+      event: 'lavalink.check.partial_failure',
+      unhealthyNodes: unhealthy.map((n) => n.name),
+    });
+  }
+}
+
+run().catch((error) => {
+  logger.error('Lavalink check failed', { event: 'lavalink.check.failed', error: error.message });
+  process.exit(1);
+});
