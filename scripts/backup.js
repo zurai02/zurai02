@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, readdir, stat, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { URL } from 'node:url';
 import dotenv from 'dotenv';
 import { logger } from '../src/utils/logger.js';
 
@@ -45,7 +46,8 @@ function assertEnv(name) {
 }
 
 function ensureCommand(command) {
-  const result = spawnSync(command, ['--version'], {
+  const checkCmd = process.platform === 'win32' ? 'where' : 'which';
+  const result = spawnSync(checkCmd, [command], {
     encoding: 'utf8',
     stdio: 'pipe',
     shell: process.platform === 'win32'
@@ -56,10 +58,36 @@ function ensureCommand(command) {
   }
 }
 
+function parseDatabaseUrl(url) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error('POSTGRES_URL is not a valid URL');
+  }
+
+  if (parsed.protocol !== 'postgresql:' && parsed.protocol !== 'postgres:') {
+    throw new Error('POSTGRES_URL must use the postgresql:// protocol');
+  }
+
+  const database = decodeURIComponent(parsed.pathname.slice(1));
+  if (!parsed.hostname || !database) {
+    throw new Error('POSTGRES_URL must include host and database name');
+  }
+
+  return {
+    host: parsed.hostname,
+    port: parsed.port || '5432',
+    database,
+    user: decodeURIComponent(parsed.username),
+    password: decodeURIComponent(parsed.password),
+  };
+}
+
 function createTimestamp() {
   const now = new Date();
   const pad = (value) => String(value).padStart(2, '0');
-  return `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}-${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}`;
+  return `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}-${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}-${String(now.getUTCMilliseconds()).padStart(3, '0')}`;
 }
 
 async function pruneBackups(backupDir, retentionDays) {
@@ -67,7 +95,16 @@ async function pruneBackups(backupDir, retentionDays) {
     return;
   }
 
-  const entries = await readdir(backupDir, { withFileTypes: true });
+  let entries;
+  try {
+    entries = await readdir(backupDir, { withFileTypes: true });
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return;
+    }
+    throw error;
+  }
+
   const cutoff = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
   let removed = 0;
 
@@ -96,8 +133,15 @@ async function pruneBackups(backupDir, retentionDays) {
 async function run() {
   const args = parseArgs(process.argv.slice(2));
   const databaseUrl = assertEnv('POSTGRES_URL');
-  const retentionDays = Number.parseInt(args['retention-days'] || process.env.BACKUP_RETENTION_DAYS || '14', 10);
-  const backupDir = path.resolve(args['backup-dir'] || process.env.BACKUP_DIR || path.join(process.cwd(), 'backups'));
+  const { host, port, database, user, password } = parseDatabaseUrl(databaseUrl);
+
+  const retentionDays = Number.parseInt(
+    args['retention-days'] ?? process.env.BACKUP_RETENTION_DAYS ?? '14',
+    10
+  );
+  const backupDir = path.resolve(
+    args['backup-dir'] ?? process.env.BACKUP_DIR ?? path.join(process.cwd(), 'backups')
+  );
 
   ensureCommand('pg_dump');
   await mkdir(backupDir, { recursive: true });
@@ -112,31 +156,53 @@ async function run() {
     '--no-privileges',
     '--file',
     outputPath,
-    databaseUrl
+    database
   ];
 
   logger.info('Starting PostgreSQL backup', {
     event: 'backup.start',
-    outputPath
+    outputPath,
+    database,
+    host
   });
 
   const result = spawnSync('pg_dump', dumpArgs, {
     encoding: 'utf8',
-    stdio: 'pipe',
+    stdio: ['ignore', 'ignore', 'pipe'],
+    maxBuffer: 10 * 1024 * 1024,
+    env: {
+      ...process.env,
+      PGHOST: host,
+      PGPORT: port,
+      PGUSER: user,
+      PGPASSWORD: password,
+      PGDATABASE: database,
+    },
     shell: process.platform === 'win32'
   });
 
   if (result.status !== 0) {
-    throw new Error(`pg_dump failed: ${result.stderr || result.stdout || 'Unknown error'}`);
+    throw new Error(`pg_dump failed: ${result.stderr || 'Unknown error'}`);
   }
 
-  await pruneBackups(backupDir, retentionDays);
+  const { size } = await stat(outputPath);
 
   logger.info('PostgreSQL backup completed', {
     event: 'backup.completed',
     outputPath,
+    sizeBytes: size,
+    sizeMb: Number((size / 1024 / 1024).toFixed(2)),
     retentionDays
   });
+
+  try {
+    await pruneBackups(backupDir, retentionDays);
+  } catch (error) {
+    logger.warn('Backup pruning failed, but backup itself succeeded', {
+      event: 'backup.prune.failed',
+      error: error.message
+    });
+  }
 
   process.stdout.write(`${outputPath}\n`);
 }
