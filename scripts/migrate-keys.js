@@ -26,23 +26,79 @@ const { Pool } = pg;
 const dryRun = process.argv.includes('--dry-run');
 const force = process.argv.includes('--force');
 
-async function run() {
-    const pool = new Pool({
-        connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
-        ssl: resolveSslConfig(),
-    });
+const CONNECT_TIMEOUT_MS = 10_000;
+const MIGRATION_TIMEOUT_MS = 120_000;
 
-    try {
-        const summary = await runKeyMigration({ pool, dryRun, force, logger });
-        if (summary?.alreadyDone) {
-            logger.info('Key migration already applied. Use --force to re-run.');
-        }
-    } finally {
-        await pool.end();
-    }
+function assertConnectionString() {
+  const value = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!value) {
+    throw new Error('Missing required environment variable: POSTGRES_URL or DATABASE_URL');
+  }
+  return value;
 }
 
-run().catch((error) => {
-    logger.error('Key migration failed:', error);
+function withTimeout(promise, ms, context) {
+  const timeout = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`${context} timed out after ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeout]);
+}
+
+async function run() {
+  const connectionString = assertConnectionString();
+
+  const pool = new Pool({
+    connectionString,
+    ssl: resolveSslConfig(),
+    connectionTimeoutMillis: CONNECT_TIMEOUT_MS,
+  });
+
+  let exiting = false;
+  const shutdown = async (signal) => {
+    if (exiting) return;
+    exiting = true;
+    logger.info(`Received ${signal}, closing pool...`, { event: 'migration.shutdown', signal });
+    await pool.end().catch(() => {});
+    process.exit(0);
+  };
+
+  process.once('SIGINT', () => shutdown('SIGINT'));
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+
+  try {
+    // Fast-fail if DB is unreachable
+    await withTimeout(pool.query('SELECT 1'), CONNECT_TIMEOUT_MS, 'Database connection');
+
+    const summary = await withTimeout(
+      runKeyMigration({ pool, dryRun, force, logger }),
+      MIGRATION_TIMEOUT_MS,
+      'Key migration'
+    );
+
+    if (summary?.alreadyDone) {
+      logger.info('Key migration already applied. Use --force to re-run.', {
+        event: 'migration.already_done',
+        force,
+      });
+    } else {
+      logger.info('Key migration completed', {
+        event: 'migration.completed',
+        dryRun,
+        summary,
+      });
+    }
+  } catch (error) {
+    logger.error('Key migration failed', {
+      event: 'migration.failed',
+      error: error.message,
+      stack: error.stack,
+      dryRun,
+      force,
+    });
     process.exit(1);
-});
+  } finally {
+    await pool.end();
+  }
+}
+
+run();
