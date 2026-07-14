@@ -7,7 +7,7 @@ import { performance } from 'node:perf_hooks';
 
 import config from './config/application.js';
 import { initializeDatabase } from './utils/database.js';
-import { getServerCounters, saveServerCounters, updateCounter } from './services/serverstatsService.js';
+import { getServerCounters, updateCounter } from './services/serverstatsService.js';
 import { logger, startupLog, shutdownLog } from './utils/logger.js';
 import { checkBirthdays } from './services/birthdayService.js';
 import { checkGiveaways } from './services/giveawayService.js';
@@ -56,6 +56,8 @@ class TitanBot extends Client {
     this.lavalink = null;
     this.webServer = null;
     this._shuttingDown = false;
+    this._cronTasks = [];
+    this._guildLocks = new Map();
   }
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -215,10 +217,13 @@ class TitanBot extends Client {
   }
 
   async _stopDatabase() {
-    if (!this.db?.db?.pool) return;
+    if (!this.db) return;
     logger.info('Closing database connection...', { event: 'shutdown.db' });
     try {
-      await this.db.db.pool.end();
+      const pool = this.db.pool || this.db.db?.pool;
+      if (pool && typeof pool.end === 'function') {
+        await pool.end();
+      }
       logger.info('✅ Database connection closed', { event: 'shutdown.db.done' });
     } catch (error) {
       logger.warn('Error closing database pool', { event: 'shutdown.db.error', error: error.message });
@@ -366,6 +371,28 @@ class TitanBot extends Client {
     });
   }
 
+  // ─── Guild Lock Utility ─────────────────────────────────────────────────────
+
+  /**
+   * Acquire a per-guild async lock. Returns a release function.
+   * @param {string} guildId
+   * @returns {Promise<() => void>}
+   */
+  async _acquireGuildLock(guildId) {
+    while (this._guildLocks.get(guildId)) {
+      await this._guildLocks.get(guildId);
+    }
+
+    let resolveLock;
+    const lockPromise = new Promise((resolve) => { resolveLock = resolve; });
+    this._guildLocks.set(guildId, lockPromise);
+
+    return () => {
+      this._guildLocks.delete(guildId);
+      resolveLock();
+    };
+  }
+
   // ─── Cron Jobs ──────────────────────────────────────────────────────────────
 
   updateAllCounters() {
@@ -383,20 +410,20 @@ class TitanBot extends Client {
   }
 
   async _updateGuildCounters(guildId, guild) {
+    const release = await this._acquireGuildLock(guildId);
+
     try {
       const counters = await getServerCounters(this, guildId);
-      const valid = [];
-      const orphaned = [];
+      const orphanedIds = [];
 
       for (const counter of counters) {
         if (!counter?.type || !counter.channelId || counter.enabled === false) continue;
 
         const channel = guild.channels.cache.get(counter.channelId);
         if (channel) {
-          valid.push(counter);
           await updateCounter(this, guild, counter);
         } else {
-          orphaned.push(counter);
+          orphanedIds.push(counter.id);
           logger.info('Removing orphaned counter', {
             event: 'counter.orphan',
             counterId: counter.id,
@@ -407,12 +434,38 @@ class TitanBot extends Client {
         }
       }
 
-      if (orphaned.length > 0) {
-        await saveServerCounters(this, guildId, valid);
-        logger.info('Cleaned up orphaned counters', { event: 'counter.cleanup', count: orphaned.length, guildId });
+      if (orphanedIds.length > 0) {
+        await this._deleteCountersById(guildId, orphanedIds);
+        logger.info('Cleaned up orphaned counters', {
+          event: 'counter.cleanup',
+          count: orphanedIds.length,
+          guildId,
+        });
       }
     } catch (error) {
       logger.error('Counter update failed', { event: 'counter.error', guildId, error: error.message });
+    } finally {
+      release();
+    }
+  }
+
+  async _deleteCountersById(guildId, counterIds) {
+    if (this.db?.deleteCountersById) {
+      await this.db.deleteCountersById(guildId, counterIds);
+      return;
+    }
+
+    for (const id of counterIds) {
+      try {
+        await this.db?.deleteCounter?.(guildId, id);
+      } catch (err) {
+        logger.warn('Failed to delete orphaned counter', {
+          event: 'counter.delete_failed',
+          counterId: id,
+          guildId,
+          error: err.message,
+        });
+      }
     }
   }
 
