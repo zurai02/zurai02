@@ -22,8 +22,11 @@ import {
   createDashboardCollectorFilter,
   isCommandAccessCustomId,
 } from './modules/commands_dashboard.js';
+import { isFeatureEnabled } from '../../config/bot.js';
 
 const DASHBOARD_TIMEOUT_MS = 10 * 60 * 1000;
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function buildCategoryChoices(client) {
   const registry = buildCommandRegistry(client);
@@ -35,6 +38,267 @@ function buildCategoryChoices(client) {
       value: category.key,
     }));
 }
+
+async function ensureManageGuild(interaction) {
+  if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+    await replyUserError(interaction, {
+      type: ErrorTypes.PERMISSION,
+      message: 'You need the **Manage Server** permission to manage commands.',
+    });
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Check if auto-moderation is enabled before allowing access.
+ * @param {import('discord.js').ChatInputCommandInteraction} interaction
+ * @returns {Promise<boolean>}
+ */
+async function ensureAutomodAvailable(interaction) {
+  if (!isFeatureEnabled('autoModeration')) {
+    await replyUserError(interaction, {
+      type: ErrorTypes.FEATURE_DISABLED,
+      message: 'Auto-moderation is not enabled on this bot instance.',
+    });
+    return false;
+  }
+  return true;
+}
+
+// ─── Command Definition ───────────────────────────────────────────────────────
+
+export default {
+  data: new SlashCommandBuilder()
+    .setName('commands')
+    .setDescription('Enable or disable bot commands and categories for this server')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDMPermission(false)
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('dashboard')
+        .setDescription('Open the interactive command access dashboard'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('disable')
+        .setDescription('Disable a command or entire category')
+        .addStringOption((option) =>
+          option
+            .setName('scope')
+            .setDescription('Disable a single command or a whole category')
+            .setRequired(true)
+            .addChoices(
+              { name: 'Category', value: 'category' },
+              { name: 'Command', value: 'command' },
+            ),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('target')
+            .setDescription('Category or command name')
+            .setRequired(true)
+            .setAutocomplete(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('enable')
+        .setDescription('Enable a command or entire category')
+        .addStringOption((option) =>
+          option
+            .setName('scope')
+            .setDescription('Enable a single command or a whole category')
+            .setRequired(true)
+            .addChoices(
+              { name: 'Category', value: 'category' },
+              { name: 'Command', value: 'command' },
+            ),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('target')
+            .setDescription('Category or command name')
+            .setRequired(true)
+            .setAutocomplete(true),
+        ),
+    ),
+  category: 'Core',
+
+  // ─── Autocomplete ───────────────────────────────────────────────────────────
+
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+
+    if (focused.name !== 'target') {
+      return interaction.respond([]);
+    }
+
+    const scope = interaction.options.getString('scope');
+    const query = focused.value.toLowerCase();
+
+    if (scope === 'category') {
+      const choices = buildCategoryChoices(interaction.client)
+        .filter((choice) => choice.name.toLowerCase().includes(query) || choice.value.includes(query))
+        .slice(0, 25);
+      return interaction.respond(choices);
+    }
+
+    // Command scope
+    const registry = buildCommandRegistry(interaction.client);
+    const allCommands = [];
+    const matchedCategory = resolveCategoryChoice(interaction.client, query);
+
+    if (matchedCategory) {
+      for (const command of matchedCategory.commands) {
+        if (!isProtectedCommand(command.name)) {
+          allCommands.push(command.name);
+        }
+      }
+    } else {
+      for (const category of registry.values()) {
+        for (const command of category.commands) {
+          if (!isProtectedCommand(command.name)) {
+            allCommands.push(command.name);
+          }
+        }
+      }
+    }
+
+    const choices = allCommands
+      .filter((name) => name.includes(query))
+      .slice(0, 25)
+      .map((name) => ({ name: `/${name}`, value: name }));
+
+    return interaction.respond(choices);
+  },
+
+  // ─── Execute ─────────────────────────────────────────────────────────────────
+
+  async execute(interaction, config, client) {
+    if (!(await ensureManageGuild(interaction))) {
+      return;
+    }
+
+    const subcommand = interaction.options.getSubcommand();
+
+    // Dashboard flow
+    if (subcommand === 'dashboard') {
+      const deferred = await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
+      if (!deferred) return;
+
+      const view = await buildDashboardView(client, interaction.guildId, interaction.guild, 'overview');
+      await InteractionHelper.safeEditReply(interaction, {
+        embeds: [view.embed],
+        components: view.components,
+      });
+
+      const replyMessage = await interaction.fetchReply().catch(() => null);
+      if (!replyMessage) return;
+
+      const collector = replyMessage.createMessageComponentCollector({
+        filter: createDashboardCollectorFilter(interaction.user.id, interaction.guildId),
+        time: DASHBOARD_TIMEOUT_MS,
+      });
+
+      collector.on('collect', async (componentInteraction) => {
+        try {
+          if (!isCommandAccessCustomId(componentInteraction.customId)) return;
+          await handleDashboardComponent(componentInteraction, client);
+        } catch (error) {
+          logger.error('Command access dashboard interaction failed', {
+            event: 'commands.dashboard.error',
+            error: error.message,
+            customId: componentInteraction.customId,
+            guildId: interaction.guildId,
+          });
+          await replyUserError(componentInteraction, {
+            type: ErrorTypes.UNKNOWN,
+            message: error.message || 'Failed to update command access.',
+          }).catch(() => {});
+        }
+      });
+
+      collector.on('end', async () => {
+        const finalView = await buildDashboardView(client, interaction.guildId, interaction.guild, 'overview');
+        const disabledComponents = finalView.components.map((row) => {
+          const newRow = row.toJSON();
+          newRow.components = newRow.components.map((component) => ({ ...component, disabled: true }));
+          return newRow;
+        });
+        await replyMessage.edit({ components: disabledComponents }).catch(() => {});
+      });
+
+      return;
+    }
+
+    // Enable / Disable flow
+    const scope = interaction.options.getString('scope');
+    const target = interaction.options.getString('target');
+    const isDisable = subcommand === 'disable';
+
+    const deferred = await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
+    if (!deferred) return;
+
+    // Auto-moderation guard for category-level operations
+    if (scope === 'category') {
+      const category = resolveCategoryChoice(client, target);
+      if (!category) {
+        return await replyUserError(interaction, {
+          type: ErrorTypes.UNKNOWN,
+          message: `No category matched \`${target}\`. Use \`/commands dashboard\` to browse categories.`,
+        });
+      }
+
+      // Extra guard for auto-moderation category
+      if (category.key === 'automoderation' && !(await ensureAutomodAvailable(interaction))) {
+        return;
+      }
+
+      if (isDisable) {
+        await disableCategory(client, interaction.guildId, category.key);
+        return InteractionHelper.safeEditReply(interaction, {
+          embeds: [
+            successEmbed(
+              'Category Disabled',
+              `All **${category.displayName}** commands are now disabled.\nProtected commands remain available.`,
+            ),
+          ],
+        });
+      }
+
+      await enableCategory(client, interaction.guildId, category.key);
+      return InteractionHelper.safeEditReply(interaction, {
+        embeds: [
+          successEmbed(
+            'Category Enabled',
+            `**${category.displayName}** commands are now enabled (except individually disabled commands).`
+          ),
+        ],
+      });
+    }
+
+    // Command scope
+    const commandName = target.toLowerCase();
+
+    // Auto-moderation command guard
+    if (commandName.startsWith('automod') && !(await ensureAutomodAvailable(interaction))) {
+      return;
+    }
+
+    if (isDisable) {
+      await disableCommand(client, interaction.guildId, commandName);
+      return InteractionHelper.safeEditReply(interaction, {
+        embeds: [successEmbed('Command Disabled', `\`/${commandName}\` is now disabled in this server.`)],
+      });
+    }
+
+    await enableCommand(client, interaction.guildId, commandName);
+    return InteractionHelper.safeEditReply(interaction, {
+      embeds: [successEmbed('Command Enabled', `\`/${commandName}\` is now enabled in this server.`)],
+    });
+  },
+};}
 
 async function ensureManageGuild(interaction) {
   if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
