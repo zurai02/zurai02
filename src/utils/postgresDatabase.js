@@ -1,5 +1,3 @@
-// postgresDatabase.js
-
 import pg from 'pg';
 import { pgConfig, resolvePostgresPoolConfig } from '../config/database/postgres.js';
 import { logger } from './logger.js';
@@ -42,7 +40,7 @@ class PostgreSQLDatabase {
     }
 
     async _establishConnection() {
-        const retries = Number.isFinite(pgConfig.options.retries) ? pgConfig.options.retries : 0;
+        const retries = Number.isFinite(pgConfig.options.retries) ? pgConfig.options.options.retries : 0;
         const baseDelay = Number.isFinite(pgConfig.options.backoffBase) ? pgConfig.options.backoffBase : 100;
         const multiplier = Number.isFinite(pgConfig.options.backoffMultiplier) ? pgConfig.options.backoffMultiplier : 2;
         const attempts = Math.max(1, retries + 1);
@@ -136,13 +134,13 @@ class PostgreSQLDatabase {
                 if (isLastAttempt) {
                     logger.error('Failed to initialize PostgreSQL Database:', error);
                     this.isConnected = false;
-                    return false;
+                    throw error;
                 }
 
                 if (isSchemaMismatch) {
                     logger.error('Failed to initialize PostgreSQL Database:', error);
                     this.isConnected = false;
-                    return false;
+                    throw error;
                 }
 
                 logger.warn(`PostgreSQL connection attempt ${attempt} failed: ${error.message}`);
@@ -152,7 +150,9 @@ class PostgreSQLDatabase {
         }
 
         this.isConnected = false;
-        return false;
+        const finalError = new Error(this.lastFailureMessage || 'PostgreSQL connection failed after all retries');
+        finalError.code = this.lastFailureReason || 'POSTGRES_CONNECTION_FAILED';
+        throw finalError;
     }
 
     async runStartupKeyMigration() {
@@ -168,7 +168,6 @@ class PostgreSQLDatabase {
                 logger.info('Startup key migration finished', result);
             }
         } catch (error) {
-            // Never block startup on key migration; legacy reads still work via fallback.
             logger.error('Startup key migration failed (continuing with legacy fallback):', error);
         }
     }
@@ -259,6 +258,7 @@ class PostgreSQLDatabase {
                 await this.pool.query(table);
             } catch (error) {
                 logger.error('Error creating table:', error);
+                throw error;
             }
         }
         
@@ -274,6 +274,7 @@ class PostgreSQLDatabase {
                 await this.pool.query(index);
             } catch (error) {
                 logger.warn('Error creating index:', error.message);
+                throw error;
             }
         }
         
@@ -311,12 +312,14 @@ class PostgreSQLDatabase {
                     );
                 } catch (error) {
                     logger.warn(`Error creating trigger ${trigger.name} on ${trigger.table}: ${error.message}`);
+                    throw error;
                 }
             }
             
             logger.info('Audit triggers created/verified');
         } catch (error) {
             logger.warn('Error creating audit triggers:', error.message);
+            throw error;
         }
     }
 
@@ -352,8 +355,9 @@ class PostgreSQLDatabase {
     async get(key, defaultValue = null) {
         try {
             if (!this.isAvailable()) {
-                logger.warn('PostgreSQL not available, returning default value');
-                return defaultValue;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const canonicalKey = canonicalizeKey(key);
@@ -386,15 +390,16 @@ class PostgreSQLDatabase {
             return structuredValue;
         } catch (error) {
             logger.error(`Error getting value for key ${key}:`, error);
-            return defaultValue;
+            throw error;
         }
     }
 
     async set(key, value, ttl = null) {
         try {
             if (!this.isAvailable()) {
-                logger.warn('PostgreSQL not available, cannot set value');
-                return false;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const canonicalKey = canonicalizeKey(key);
@@ -425,15 +430,16 @@ class PostgreSQLDatabase {
             return await this.setStructuredData(parsedKey, value, ttl);
         } catch (error) {
             logger.error(`Error setting value for key ${key}:`, error);
-            return false;
+            throw error;
         }
     }
 
     async delete(key) {
         try {
             if (!this.isAvailable()) {
-                logger.warn('PostgreSQL not available, cannot delete key');
-                return false;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const canonicalKey = canonicalizeKey(key);
@@ -461,15 +467,16 @@ class PostgreSQLDatabase {
             return deleted;
         } catch (error) {
             logger.error(`Error deleting key ${key}:`, error);
-            return false;
+            throw error;
         }
     }
 
     async list(prefix) {
         try {
             if (!this.isAvailable()) {
-                logger.warn('PostgreSQL not available, returning empty list');
-                return [];
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const keys = new Set();
@@ -511,14 +518,16 @@ class PostgreSQLDatabase {
             return [...keys];
         } catch (error) {
             logger.error(`Error listing keys with prefix ${prefix}:`, error);
-            return [];
+            throw error;
         }
     }
 
     async insertVerificationAudit(record) {
         try {
             if (!this.isAvailable()) {
-                return false;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const {
@@ -542,28 +551,32 @@ class PostgreSQLDatabase {
             return true;
         } catch (error) {
             logger.error('Error inserting verification audit:', error);
-            return false;
+            throw error;
         }
     }
 
     async exists(key) {
         try {
             if (!this.isAvailable()) {
-                return false;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const value = await this.get(key);
             return value !== null;
         } catch (error) {
             logger.error(`Error checking if key exists ${key}:`, error);
-            return false;
+            throw error;
         }
     }
 
     async increment(key, amount = 1) {
         try {
             if (!this.isAvailable()) {
-                return amount;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const currentValue = await this.get(key, 0);
@@ -572,14 +585,16 @@ class PostgreSQLDatabase {
             return newValue;
         } catch (error) {
             logger.error(`Error incrementing key ${key}:`, error);
-            return amount;
+            throw error;
         }
     }
 
     async decrement(key, amount = 1) {
         try {
             if (!this.isAvailable()) {
-                return -amount;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const currentValue = await this.get(key, 0);
@@ -588,7 +603,7 @@ class PostgreSQLDatabase {
             return newValue;
         } catch (error) {
             logger.error(`Error decrementing key ${key}:`, error);
-            return -amount;
+            throw error;
         }
     }
 
@@ -640,7 +655,6 @@ class PostgreSQLDatabase {
                         [parsedKey.guildId, parsedKey.userId]
                     );
                     if (userLevelResult.rows.length === 0) return defaultValue;
-                    // Map snake_case columns to the camelCase shape consumers expect
                     const levelRow = userLevelResult.rows[0];
                     return {
                         xp: Number(levelRow.xp) || 0,
@@ -698,7 +712,7 @@ class PostgreSQLDatabase {
             }
         } catch (error) {
             logger.error(`Error getting structured data for ${parsedKey.fullKey}:`, error);
-            return defaultValue;
+            throw error;
         }
     }
 
@@ -856,8 +870,8 @@ class PostgreSQLDatabase {
                     
                     await this.pool.query(
                         `INSERT INTO ${pgConfig.tables.users} (id, created_at) 
-                         VALUES ($1, CURRENT_TIMESTAMP) 
-                         ON CONFLICT (id) DO NOTHING`,
+                             VALUES ($1, CURRENT_TIMESTAMP) 
+                             ON CONFLICT (id) DO NOTHING`,
                         [parsedKey.userId]
                     );
                     
@@ -938,7 +952,7 @@ class PostgreSQLDatabase {
             }
         } catch (error) {
             logger.error(`Error setting structured data for ${parsedKey.fullKey}:`, error);
-            return false;
+            throw error;
         }
     }
 
@@ -993,7 +1007,7 @@ class PostgreSQLDatabase {
             }
         } catch (error) {
             logger.error(`Error deleting structured data for ${parsedKey.fullKey}:`, error);
-            return false;
+            throw error;
         }
     }
 
@@ -1005,13 +1019,16 @@ class PostgreSQLDatabase {
             }
         } catch (error) {
             logger.error('Error closing PostgreSQL connection:', error);
+            throw error;
         }
     }
 
     async getInfo() {
         try {
             if (!this.isAvailable()) {
-                return null;
+                const err = new Error('PostgreSQL not available');
+                err.code = 'DB_UNAVAILABLE';
+                throw err;
             }
 
             const result = await this.pool.query('SELECT version()');
@@ -1024,7 +1041,7 @@ class PostgreSQLDatabase {
             };
         } catch (error) {
             logger.error('Error getting PostgreSQL info:', error);
-            return null;
+            throw error;
         }
     }
 }
