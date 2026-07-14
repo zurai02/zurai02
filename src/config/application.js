@@ -1,87 +1,158 @@
-import { fileURLToPath } from "url";
-import path from "path";
-import botConfig, { validateConfig } from "./bot.js";
-import { shopConfig as shop } from "./shop/index.js";
-import { pgConfig } from "./database/postgres.js";
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import botConfig, { validateConfig } from './bot.js';
+import { shopConfig as shop } from './shop/index.js';
+import { pgConfig } from './database/postgres.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const appConfig = {
-  paths: {
-    root: path.join(__dirname, "../.."),
-    commands: path.join(__dirname, "../commands"),
-    events: path.join(__dirname, "../events"),
-    config: __dirname,
-    utils: path.join(__dirname, "../utils"),
-    services: path.join(__dirname, "../services"),
-    handlers: path.join(__dirname, "../handlers"),
-    interactions: path.join(__dirname, "../interactions"),
-  },
+// ─── Validation (fail fast before building config) ───────────────────────────
 
-  bot: {
+const configErrors = validateConfig();
+if (configErrors.length > 0) {
+  // eslint-disable-next-line no-console
+  console.error('[CONFIG] Validation failed:', configErrors.join('\n'));
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
+
+// ─── Path Resolution ─────────────────────────────────────────────────────────
+
+const ROOT = path.join(__dirname, '../..');
+
+const PATHS = Object.freeze({
+  root: ROOT,
+  src: path.join(ROOT, 'src'),
+  commands: path.join(ROOT, 'src', 'commands'),
+  events: path.join(ROOT, 'src', 'events'),
+  config: __dirname,
+  utils: path.join(ROOT, 'src', 'utils'),
+  services: path.join(ROOT, 'src', 'services'),
+  handlers: path.join(ROOT, 'src', 'handlers'),
+  interactions: path.join(ROOT, 'src', 'interactions'),
+  scripts: path.join(ROOT, 'scripts'),
+  logs: path.join(ROOT, 'logs'),
+  backups: path.join(ROOT, 'backups'),
+  tests: path.join(ROOT, 'tests'),
+});
+
+// ─── Environment ─────────────────────────────────────────────────────────────
+
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const IS_PRODUCTION = NODE_ENV === 'production';
+const IS_DEVELOPMENT = !IS_PRODUCTION;
+
+// ─── CORS Parsing ──────────────────────────────────────────────────────────────
+
+function parseCorsOrigin(raw) {
+  if (!raw) return '*';
+  const origins = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return origins.length === 1 ? origins[0] : origins;
+}
+
+// ─── Application Config ────────────────────────────────────────────────────────
+
+const appConfig = Object.freeze({
+  // ─── Paths ──────────────────────────────────────────────────────────────────
+  paths: PATHS,
+
+  // ─── Bot ────────────────────────────────────────────────────────────────────
+  bot: Object.freeze({
     ...botConfig,
     token: process.env.DISCORD_TOKEN || process.env.TOKEN,
     clientId: process.env.CLIENT_ID,
-    // Retained for tutorial/setup compatibility; not used for command registration.
-    guildId: process.env.GUILD_ID,
+    guildId: process.env.GUILD_ID, // tutorial/setup compatibility only
 
-    shop: {
+    shop: Object.freeze({
       ...botConfig.shop,
       ...shop,
-    },
-  },
+    }),
+  }),
 
-  // PostgreSQL configuration - Primary production database
-  postgresql: {
+  // ─── Database ───────────────────────────────────────────────────────────────
+  postgresql: Object.freeze({
     ...pgConfig,
-  },
+  }),
 
-  logging: {
-    level: process.env.LOG_LEVEL || "info",
-    file: {
-      enabled: process.env.LOG_TO_FILE === "true",
-      path: path.join(__dirname, "../../logs"),
-      maxSize: "20m",
-      maxFiles: "14d",
+  // ─── Logging ────────────────────────────────────────────────────────────────
+  logging: Object.freeze({
+    level: process.env.LOG_LEVEL || 'info',
+    file: Object.freeze({
+      enabled: process.env.LOG_TO_FILE === 'true',
+      path: PATHS.logs,
+      maxSize: '20m',
+      maxFiles: '14d',
       zippedArchive: true,
-    },
-    console: {
+    }),
+    console: Object.freeze({
       enabled: true,
       colorize: true,
       timestamp: true,
-    },
-    sentry: {
-      enabled: process.env.SENTRY_DSN ? true : false,
+    }),
+    sentry: Object.freeze({
+      enabled: Boolean(process.env.SENTRY_DSN),
       dsn: process.env.SENTRY_DSN,
-      environment: process.env.NODE_ENV || "development",
-    },
-  },
+      environment: NODE_ENV,
+    }),
+  }),
 
-  api: {
-    port: process.env.PORT || 3000,
-    cors: {
-      origin: process.env.CORS_ORIGIN?.split(",") || "*",
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    },
-    rateLimit: {
+  // ─── API / Web Server ───────────────────────────────────────────────────────
+  api: Object.freeze({
+    port: Number(process.env.PORT) || 3000,
+    host: process.env.WEB_HOST || '0.0.0.0',
+    cors: Object.freeze({
+      origin: parseCorsOrigin(process.env.CORS_ORIGIN),
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    }),
+    rateLimit: Object.freeze({
       windowMs: 15 * 60 * 1000,
       max: 100,
-    },
-  },
+    }),
+  }),
 
-  shop,
+  // ─── Shop (standalone export compatibility) ─────────────────────────────────
+  shop: Object.freeze(shop),
 
-  features: {
+  // ─── Features ───────────────────────────────────────────────────────────────
+  features: Object.freeze({
     ...botConfig.features,
     music: botConfig.features?.music ?? true,
-  },
+  }),
 
-  env: process.env.NODE_ENV || "development",
-  isProduction: process.env.NODE_ENV === "production",
-  isDevelopment: process.env.NODE_ENV !== "production",
-};
+  // ─── Environment ──────────────────────────────────────────────────────────────
+  env: NODE_ENV,
+  isProduction: IS_PRODUCTION,
+  isDevelopment: IS_DEVELOPMENT,
+  isTest: NODE_ENV === 'test',
+  isStaging: NODE_ENV === 'staging',
+});
 
-Object.freeze(appConfig);
+// ─── Deep Freeze Helper ───────────────────────────────────────────────────────
+
+function deepFreeze(obj) {
+  if (obj === null || typeof obj !== 'object') return obj;
+  const propNames = Object.getOwnPropertyNames(obj);
+  for (const name of propNames) {
+    const value = obj[name];
+    if (value !== null && typeof value === 'object') {
+      deepFreeze(value);
+    }
+  }
+  return Object.freeze(obj);
+}
+
+deepFreeze(appConfig);
+
+// ─── Exports ─────────────────────────────────────────────────────────────────
 
 export default appConfig;
+
+export {
+  PATHS as paths,
+  NODE_ENV as env,
+  IS_PRODUCTION as isProduction,
+  IS_DEVELOPMENT as isDevelopment,
+};
