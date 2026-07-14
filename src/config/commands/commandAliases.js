@@ -4,132 +4,173 @@
  */
 
 export const commandAliases = {
-    'bal': 'balance',
-    'money': 'balance',
-    'cash': 'balance',
+  // ─── Economy ────────────────────────────────────────────────────────────────
+  bal: 'balance',
+  money: 'balance',
+  cash: 'balance',
+  dep: 'deposit',
+  with: 'withdraw',
+  work: 'work',
+  daily: 'daily',
+  gamble: 'gamble',
+  bet: 'gamble',
+  rob: 'rob',
+  crime: 'crime',
+  pay: 'pay',
+  give: 'pay',
+  send: 'pay',
 
-    'dep': 'deposit',
-    'with': 'withdraw',
-    'work': 'work',
-    'daily': 'daily',
-    'gamble': 'gamble',
-    'bet': 'gamble',
-    'rob': 'rob',
-    'crime': 'crime',
-    'pay': 'pay',
-    'give': 'pay',
-    'send': 'pay',
+  // ─── Core ───────────────────────────────────────────────────────────────────
+  ping: 'ping',
+  help: 'help',
+  h: 'help',
+  info: 'help',
+  about: 'help', // ← added
 
-    'ping': 'ping',
-    'help': 'help',
-    'h': 'help',
-    'info': 'help',
+  // ─── Moderation ─────────────────────────────────────────────────────────────
+  ban: 'ban',
+  kick: 'kick',
+  mute: 'timeout',
+  warn: 'warn',
+  clear: 'purge',
+  purge: 'purge',
+  untimeout: 'untimeout',
+  unmute: 'untimeout',
 
-    'ban': 'ban',
-    'kick': 'kick',
-    'mute': 'timeout',
-    'warn': 'warn',
-    'clear': 'purge',
-    'purge': 'purge',
-    'untimeout': 'untimeout',
-    'unmute': 'untimeout',
+  // ─── Leveling ───────────────────────────────────────────────────────────────
+  rank: 'rank',
+  lvl: 'rank',
+  xp: 'rank',
+  leaderboard: 'leaderboard',
+  lb: 'leaderboard',
+  top: 'leaderboard',
 
-    'rank': 'rank',
-    'lvl': 'rank',
-    'xp': 'rank',
-    'leaderboard': 'leaderboard',
-    'lb': 'leaderboard',
-    'top': 'leaderboard',
+  // ─── Shop ───────────────────────────────────────────────────────────────────
+  shop: 'shop',
+  buy: 'buy',
+  inventory: 'inventory',
+  inv: 'inventory',
+  items: 'inventory',
 
-    'shop': 'shop',
-    'buy': 'buy',
-    'inventory': 'inventory',
-    'inv': 'inventory',
-    'items': 'inventory',
+  // ─── Utility ────────────────────────────────────────────────────────────────
+  user: 'userinfo',
+  avatar: 'avatar',
+  pfp: 'avatar',
+  icon: 'avatar',
 
-    'user': 'userinfo',
-    'avatar': 'avatar',
-    'pfp': 'avatar',
-    'icon': 'avatar',
+  // ─── Birthday ───────────────────────────────────────────────────────────────
+  bd: 'birthday',
+  bday: 'birthday',
+  b: 'birthday',
 
-    'bd': 'birthday',
-    'bday': 'birthday',
-    'b': 'birthday',
+  // ─── Fun ────────────────────────────────────────────────────────────────────
+  flip: 'flip',
+  coin: 'flip',
+  roll: 'roll',
+  dice: 'roll',
+  fight: 'fight',
 
-    'flip': 'flip',
-    'coin': 'flip',
-    'roll': 'roll',
-    'dice': 'roll',
-    'fight': 'fight',
+  // ─── Giveaway ───────────────────────────────────────────────────────────────
+  gcreate: 'gcreate',
+  gstart: 'gcreate',
+  gend: 'gend',
+  gstop: 'gend',
+  gdelete: 'gdelete',
+  greroll: 'greroll',
+  groll: 'greroll',
 
-    'gcreate': 'gcreate',
-    'gstart': 'gcreate',
-    'gend': 'gend',
-    'gstop': 'gend',
-    'gdelete': 'gdelete',
-    'greroll': 'greroll',
-    'groll': 'greroll',
+  // ─── Ticket ─────────────────────────────────────────────────────────────────
+  ticket: 'ticket',
+  t: 'ticket',
+  new: 'ticket',
 
-    'ticket': 'ticket',
-    't': 'ticket',
-    'new': 'ticket',
+  // ─── Verification ───────────────────────────────────────────────────────────
+  ver: 'verify',
+  vadmin: 'verification',
+  av: 'autoverify',
 
-    'ver': 'verify',
-    'vadmin': 'verification',
-    'av': 'autoverify',
+  // ─── Welcome ──────────────────────────────────────────────────────────────────
+  welcome: 'welcome',
+  greet: 'greet',
+  goodbye: 'goodbye',
+  autorole: 'autorole',
 
-    'welcome': 'welcome',
-    'greet': 'greet',
-    'goodbye': 'goodbye',
-    'autorole': 'autorole',
+  // ─── Tools ──────────────────────────────────────────────────────────────────
+  calc: 'calculate',
+  math: 'calculate',
+  weather: 'weather',
+  todo: 'todo',
+  report: 'report',
+  userinfo: 'userinfo',
+  whois: 'userinfo',
+  ui: 'userinfo',
 
-    'calc': 'calculate',
-    'math': 'calculate',
-    'weather': 'weather',
-    'todo': 'todo',
-    'report': 'report',
-    'userinfo': 'userinfo',
-    'whois': 'userinfo',
-    'ui': 'userinfo',
+  // ─── Server Stats ───────────────────────────────────────────────────────────
+  serverstats: 'serverstats',
+  ss: 'serverstats',
+  sstats: 'serverstats',
 
-    'serverstats': 'serverstats',
-    'ss': 'serverstats',
-    'sstats': 'serverstats',
+  // ─── Reaction Roles ─────────────────────────────────────────────────────────
+  rr: 'reactroles',
+  reactionroles: 'reactroles',
 
-    'rr': 'reactroles',
-    'reactionroles': 'reactroles',
+  // ─── Join To Create ─────────────────────────────────────────────────────────
+  jtc: 'jointocreate',
+  jointocreate: 'jointocreate',
 
-    'jtc': 'jointocreate',
-    'jointocreate': 'jointocreate',
-
-    'np': 'nowplaying',
-    'now': 'nowplaying',
+  // ─── Music ────────────────────────────────────────────────────────────────────
+  np: 'nowplaying',
+  now: 'nowplaying',
+  play: 'play',
+  p: 'play', // ← added
+  skip: 'skip',
+  s: 'skip', // ← added
+  queue: 'queue',
+  q: 'queue', // ← added
+  pause: 'pause',
+  resume: 'resume',
+  r: 'resume', // ← added
+  stop: 'stop',
+  disconnect: 'disconnect',
+  dc: 'disconnect', // ← added
+  volume: 'volume',
+  vol: 'volume', // ← added
+  loop: 'loop',
+  shuffle: 'shuffle',
+  lyrics: 'lyrics',
+  search: 'search',
 };
 
 export const subcommandAliases = {
-    'l': 'list',
-    'ls': 'list',
-    's': 'set',
-    'i': 'info',
-    'r': 'remove',
-    'rm': 'remove',
-    'del': 'remove',
-    'n': 'next',
-    'sc': 'setchannel',
+  // ─── Generic ────────────────────────────────────────────────────────────────
+  l: 'list',
+  ls: 'list',
+  s: 'set',
+  i: 'info',
+  r: 'remove',
+  rm: 'remove',
+  del: 'remove',
+  n: 'next',
+  sc: 'setchannel',
 
-    'a': 'add',
-    'c': 'complete',
-    'done': 'complete',
-    'd': 'complete',
+  // ─── Todo ───────────────────────────────────────────────────────────────────
+  a: 'add',
+  c: 'complete',
+  done: 'complete',
+  d: 'complete',
 
-    'start': 'create',
-    'stop': 'end',
-    'roll': 'reroll',
+  // ─── Giveaway ───────────────────────────────────────────────────────────────
+  start: 'create',
+  stop: 'end',
+  roll: 'reroll',
 
-    'add': 'add',
-    'remove': 'remove',
-    'list': 'list',
+  // ─── Reaction Roles ─────────────────────────────────────────────────────────
+  add: 'add',
+  remove: 'remove',
+  list: 'list',
 };
+
+// ─── Resolve Functions ───────────────────────────────────────────────────────
 
 /**
  * Resolve a command alias to its full command name
@@ -137,8 +178,11 @@ export const subcommandAliases = {
  * @returns {string} - The full command name, or the original if not an alias
  */
 export function resolveCommandAlias(commandName) {
-    const normalized = commandName.toLowerCase();
-    return commandAliases[normalized] || commandName;
+  if (!commandName || typeof commandName !== 'string') {
+    return commandName;
+  }
+  const normalized = commandName.trim().toLowerCase();
+  return commandAliases[normalized] || normalized;
 }
 
 /**
@@ -147,6 +191,41 @@ export function resolveCommandAlias(commandName) {
  * @returns {string} - The full subcommand name, or the original if not an alias
  */
 export function resolveSubcommandAlias(subcommandName) {
-    const normalized = subcommandName.toLowerCase();
-    return subcommandAliases[normalized] || subcommandName;
+  if (!subcommandName || typeof subcommandName !== 'string') {
+    return subcommandName;
+  }
+  const normalized = subcommandName.trim().toLowerCase();
+  return subcommandAliases[normalized] || normalized;
+}
+
+/**
+ * Check if a command name is a known alias
+ * @param {string} commandName
+ * @returns {boolean}
+ */
+export function isCommandAlias(commandName) {
+  if (!commandName || typeof commandName !== 'string') return false;
+  return commandName.trim().toLowerCase() in commandAliases;
+}
+
+/**
+ * Check if a subcommand name is a known alias
+ * @param {string} subcommandName
+ * @returns {boolean}
+ */
+export function isSubcommandAlias(subcommandName) {
+  if (!subcommandName || typeof subcommandName !== 'string') return false;
+  return subcommandName.trim().toLowerCase() in subcommandAliases;
+}
+
+/**
+ * Get all aliases for a given command name
+ * @param {string} fullCommandName
+ * @returns {string[]} - Array of aliases (empty if none)
+ */
+export function getAliasesForCommand(fullCommandName) {
+  const target = fullCommandName.toLowerCase();
+  return Object.entries(commandAliases)
+    .filter(([alias, full]) => full === target)
+    .map(([alias]) => alias);
 }
