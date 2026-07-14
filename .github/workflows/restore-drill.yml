@@ -4,14 +4,30 @@ on:
   schedule:
     - cron: '0 4 * * 1'
   workflow_dispatch:
+    inputs:
+      backup_source:
+        description: 'Backup to test (latest or YYYY-MM-DD)'
+        required: false
+        default: 'latest'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   restore-drill:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+      actions: write
+    environment:
+      name: production-drill
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: titanbot
           POSTGRES_PASSWORD: titanbot
@@ -35,10 +51,13 @@ jobs:
       SCHEMA_VERSION: "1"
       SCHEMA_VERSION_LABEL: "baseline-v1"
       BACKUP_RETENTION_DAYS: "7"
+      BACKUP_SOURCE: ${{ github.event.inputs.backup_source || 'latest' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -47,7 +66,19 @@ jobs:
           cache: npm
 
       - name: Install PostgreSQL client tools
-        run: sudo apt-get update ; sudo apt-get install -y postgresql-client
+        run: |
+          sudo apt-get update || sudo apt-get update
+          sudo apt-get install -y postgresql-client-16 || sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..15}; do
+            pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" && exit 0
+            echo "Waiting for PostgreSQL... ($i/15)"
+            sleep 2
+          done
+          echo "::error::PostgreSQL failed to become ready"
+          exit 1
 
       - name: Install dependencies
         run: npm ci
@@ -56,4 +87,70 @@ jobs:
         run: npm run migrate
 
       - name: Run restore drill
-        run: npm run backup:drill
+        id: drill
+        run: |
+          mkdir -p drill-reports
+          npm run backup:drill 2>&1 | tee drill-reports/restore.log
+        continue-on-error: true
+
+      - name: Validate restored data
+        if: steps.drill.outcome == 'success'
+        run: |
+          psql "$POSTGRES_URL" -c "\dt"
+          psql "$POSTGRES_URL" -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
+        continue-on-error: true
+
+      - name: Upload drill logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: restore-drill-${{ github.run_id }}
+          path: drill-reports/
+          retention-days: ${{ env.BACKUP_RETENTION_DAYS }}
+
+      - name: Generate drill summary
+        if: always()
+        run: |
+          echo "## 🗄️ Restore Drill Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Attribute | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Trigger** | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Backup Source** | \`${{ env.BACKUP_SOURCE }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Drill Status** | ${{ steps.drill.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Schema Version** | \`${{ env.SCHEMA_VERSION }}\` |" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.drill.outcome }}" != "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ Drill Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Inspect the [uploaded artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for full logs." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Drill Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Create incident issue on failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `[ALERT] Restore drill failed — ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Restore Drill Failure
+            - **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            - **Commit:** \`${{ github.sha }}\`
+            - **Backup Source:** \`${{ process.env.BACKUP_SOURCE }}\`
+            
+            ### Next Steps
+            1. Inspect the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            2. Download the drill report artifact
+            3. Verify production backup integrity independently`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['incident', 'backup', 'automated']
+            });
+
+      - name: Cleanup sensitive drill data
+        if: always()
+        run: rm -rf drill-reports/
