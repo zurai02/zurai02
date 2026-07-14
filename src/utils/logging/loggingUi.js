@@ -1,4 +1,4 @@
-// loggingUi.js
+// loggingUi.js — Discord UI component builders for the logging dashboard
 
 import {
   ActionRowBuilder,
@@ -9,16 +9,12 @@ import {
 } from 'discord.js';
 import { EVENT_TYPES } from '../../services/loggingService.js';
 
-const EVENT_TYPES_BY_CATEGORY = Object.values(EVENT_TYPES).reduce((accumulator, eventType) => {
-  const [category] = eventType.split('.');
-  if (!accumulator[category]) {
-    accumulator[category] = [];
-  }
-  accumulator[category].push(eventType);
-  return accumulator;
-}, {});
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-export const DASHBOARD_CATEGORIES = [
+const MAX_BUTTONS_PER_ROW = 5;
+const MAX_SELECT_OPTIONS = 25;
+
+const DASHBOARD_CATEGORIES = Object.freeze([
   'moderation',
   'message',
   'role',
@@ -29,9 +25,9 @@ export const DASHBOARD_CATEGORIES = [
   'counter',
   'application',
   'report',
-];
+]);
 
-const DASHBOARD_CATEGORY_EMOJIS = {
+const DASHBOARD_CATEGORY_EMOJIS = Object.freeze({
   moderation: '🔨',
   message: '✉️',
   role: '🏷️',
@@ -42,9 +38,9 @@ const DASHBOARD_CATEGORY_EMOJIS = {
   counter: '📊',
   application: '📝',
   report: '🚨',
-};
+});
 
-export const DASHBOARD_CATEGORY_LABELS = {
+const DASHBOARD_CATEGORY_LABELS = Object.freeze({
   moderation: 'Moderation',
   message: 'Messages',
   role: 'Roles',
@@ -55,8 +51,63 @@ export const DASHBOARD_CATEGORY_LABELS = {
   counter: 'Counters',
   application: 'Applications',
   report: 'Reports',
-};
+});
 
+// ─── Derived: Event Types by Category ─────────────────────────────────────────
+
+const EVENT_TYPES_BY_CATEGORY = Object.freeze(
+  Object.values(EVENT_TYPES).reduce((accumulator, eventType) => {
+    const [category] = eventType.split('.');
+    if (!accumulator[category]) {
+      accumulator[category] = [];
+    }
+    accumulator[category].push(eventType);
+    return accumulator;
+  }, {})
+);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Chunk an array into groups of a specified size.
+ * @template T
+ * @param {T[]} array
+ * @param {number} size
+ * @returns {T[][]}
+ */
+function chunk(array, size) {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
+
+/**
+ * Determine if a category is fully enabled.
+ * @param {string} category
+ * @param {Record<string, boolean>} enabledEvents
+ * @param {boolean} loggingEnabled
+ * @returns {boolean}
+ */
+function isCategoryEnabled(category, enabledEvents, loggingEnabled) {
+  if (!loggingEnabled) return false;
+
+  const wildcardKey = `${category}.*`;
+  if (enabledEvents[wildcardKey] === false) return false;
+
+  const categoryEvents = EVENT_TYPES_BY_CATEGORY[category] || [];
+  if (categoryEvents.length === 0) return true;
+
+  return categoryEvents.every((eventType) => enabledEvents[eventType] !== false);
+}
+
+// ─── Component Builders ─────────────────────────────────────────────────────────
+
+/**
+ * Create a "Back to Dashboard" button.
+ * @returns {ButtonBuilder}
+ */
 function createBackButton() {
   return new ButtonBuilder()
     .setCustomId('log_dash_back')
@@ -64,14 +115,15 @@ function createBackButton() {
     .setStyle(ButtonStyle.Secondary);
 }
 
+/**
+ * Create category toggle button rows.
+ * @param {Record<string, boolean>} [enabledEvents={}]
+ * @param {boolean} [loggingEnabled=false]
+ * @returns {ActionRowBuilder<ButtonBuilder>[]}
+ */
 function createCategoryToggleButtons(enabledEvents = {}, loggingEnabled = false) {
   const buttons = DASHBOARD_CATEGORIES.map((category) => {
-    const wildcardDisabled = enabledEvents[`${category}.*`] === false;
-    const categoryEvents = EVENT_TYPES_BY_CATEGORY[category] || [];
-    const allEnabled = categoryEvents.length === 0
-      ? true
-      : categoryEvents.every((t) => enabledEvents[t] !== false);
-    const isEnabled = loggingEnabled && !wildcardDisabled && allEnabled;
+    const isEnabled = isCategoryEnabled(category, enabledEvents, loggingEnabled);
     const emoji = DASHBOARD_CATEGORY_EMOJIS[category] || '📌';
     const label = DASHBOARD_CATEGORY_LABELS[category] || category;
 
@@ -81,60 +133,69 @@ function createCategoryToggleButtons(enabledEvents = {}, loggingEnabled = false)
       .setStyle(isEnabled ? ButtonStyle.Success : ButtonStyle.Danger);
   });
 
-  const rows = [];
-  for (let i = 0; i < buttons.length; i += 5) {
-    rows.push(new ActionRowBuilder().addComponents(buttons.slice(i, i + 5)));
-  }
-  return rows;
+  return chunk(buttons, MAX_BUTTONS_PER_ROW).map(
+    (group) => new ActionRowBuilder().addComponents(group)
+  );
 }
 
+/**
+ * Create the main logging configuration select menu.
+ * @returns {ActionRowBuilder<StringSelectMenuBuilder>}
+ */
 export function createLoggingMainMenuSelect() {
+  const options = [
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Set Audit Log Channel')
+      .setDescription('Moderation, messages, members, roles, etc.')
+      .setValue('set:audit')
+      .setEmoji('🧾'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Set Applications Channel')
+      .setDescription('New applications and review updates')
+      .setValue('set:applications')
+      .setEmoji('📝'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Set Reports Channel')
+      .setDescription('User reports filed via /report')
+      .setValue('set:reports')
+      .setEmoji('🚨'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Clear Audit Channel')
+      .setValue('clear:audit')
+      .setEmoji('🗑️'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Clear Applications Channel')
+      .setValue('clear:applications')
+      .setEmoji('🗑️'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Clear Reports Channel')
+      .setValue('clear:reports')
+      .setEmoji('🗑️'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Event Categories')
+      .setDescription('Toggle which log types are sent')
+      .setValue('view:categories')
+      .setEmoji('📋'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Manage Ignore Filters')
+      .setDescription('Skip logs from specific users or channels')
+      .setValue('view:filters')
+      .setEmoji('🔇'),
+  ];
+
   return new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId('log_dash_menu')
       .setPlaceholder('Choose a setting to configure…')
-      .addOptions(
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Set Audit Log Channel')
-          .setDescription('Moderation, messages, members, roles, etc.')
-          .setValue('set:audit')
-          .setEmoji('🧾'),
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Set Applications Channel')
-          .setDescription('New applications and review updates')
-          .setValue('set:applications')
-          .setEmoji('📝'),
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Set Reports Channel')
-          .setDescription('User reports filed via /report')
-          .setValue('set:reports')
-          .setEmoji('🚨'),
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Clear Audit Channel')
-          .setValue('clear:audit')
-          .setEmoji('🗑️'),
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Clear Applications Channel')
-          .setValue('clear:applications')
-          .setEmoji('🗑️'),
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Clear Reports Channel')
-          .setValue('clear:reports')
-          .setEmoji('🗑️'),
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Event Categories')
-          .setDescription('Toggle which log types are sent')
-          .setValue('view:categories')
-          .setEmoji('📋'),
-        new StringSelectMenuOptionBuilder()
-          .setLabel('Manage Ignore Filters')
-          .setDescription('Skip logs from specific users or channels')
-          .setValue('view:filters')
-          .setEmoji('🔇'),
-      ),
+      .addOptions(options.slice(0, MAX_SELECT_OPTIONS))
   );
 }
 
+/**
+ * Create the main action row with audit toggle and refresh buttons.
+ * @param {boolean} [loggingEnabled=false]
+ * @returns {ActionRowBuilder<ButtonBuilder>}
+ */
 export function createLoggingMainActionRow(loggingEnabled = false) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -144,10 +205,16 @@ export function createLoggingMainActionRow(loggingEnabled = false) {
     new ButtonBuilder()
       .setCustomId('log_dash_refresh')
       .setLabel('Refresh')
-      .setStyle(ButtonStyle.Primary),
+      .setStyle(ButtonStyle.Primary)
   );
 }
 
+/**
+ * Create the full logging dashboard component set.
+ * @param {Record<string, boolean>} [_enabledEvents]
+ * @param {boolean} [loggingEnabled=false]
+ * @returns {ActionRowBuilder[]}
+ */
 export function createLoggingDashboardComponents(_enabledEvents, loggingEnabled = false) {
   return [
     createLoggingMainMenuSelect(),
@@ -155,6 +222,12 @@ export function createLoggingDashboardComponents(_enabledEvents, loggingEnabled 
   ];
 }
 
+/**
+ * Create the category view with toggle buttons and action row.
+ * @param {Record<string, boolean>} enabledEvents
+ * @param {boolean} [loggingEnabled=false]
+ * @returns {ActionRowBuilder[]}
+ */
 export function createLoggingCategoryViewComponents(enabledEvents, loggingEnabled = false) {
   const categoryRows = createCategoryToggleButtons(enabledEvents, loggingEnabled);
 
@@ -167,12 +240,16 @@ export function createLoggingCategoryViewComponents(enabledEvents, loggingEnable
     new ButtonBuilder()
       .setCustomId('log_dash_refresh')
       .setLabel('Refresh')
-      .setStyle(ButtonStyle.Primary),
+      .setStyle(ButtonStyle.Primary)
   );
 
   return [...categoryRows, actionRow];
 }
 
+/**
+ * Create the filter management component set.
+ * @returns {ActionRowBuilder<ButtonBuilder>[]}
+ */
 export function createLoggingFilterComponents() {
   return [
     new ActionRowBuilder().addComponents(
@@ -188,9 +265,11 @@ export function createLoggingFilterComponents() {
       new ButtonBuilder()
         .setCustomId('log_dash_remove_filter')
         .setLabel('Remove Filter')
-        .setStyle(ButtonStyle.Danger),
+        .setStyle(ButtonStyle.Danger)
     ),
   ];
 }
 
-export { EVENT_TYPES_BY_CATEGORY };
+// ─── Re-exports ───────────────────────────────────────────────────────────────
+
+export { DASHBOARD_CATEGORIES, DASHBOARD_CATEGORY_EMOJIS, DASHBOARD_CATEGORY_LABELS, EVENT_TYPES_BY_CATEGORY };
