@@ -2,19 +2,23 @@ name: Migration Version Check
 
 on:
   pull_request:
+    paths:
+      - 'migrations/**'
+      - 'src/db/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/migration-check.yml'
   push:
-    branches:
-      - main
-      - master
-      - mitchwork
+    branches: [main, master, mitchwork]
 
 jobs:
   migration-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: titanbot
           POSTGRES_PASSWORD: titanbot
@@ -41,6 +45,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,8 +57,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U titanbot && exit 0
+            sleep 2
+          done
+          echo "PostgreSQL failed to start"
+          exit 1
+
       - name: Apply migrations
         run: npm run migrate
 
       - name: Validate migration version
         run: npm run migrate:check
+
+      - name: Dump schema on failure
+        if: failure()
+        run: |
+          echo "::group::Current Database Schema"
+          psql "$POSTGRES_URL" -c "\dt" || true
+          echo "::endgroup::"
