@@ -1,36 +1,138 @@
 {
   "name": "titanbot",
   "version": "2.1.0",
-  "description": "Modular Ultimate Community Bot by Touchpoint Support",
+  "description": "Modular Ultimate Community Bot by zurai02 — 300+ commands, auto-moderation, economy, music, and more",
   "main": "src/app.js",
   "type": "module",
+  "private": true,
+
+  "author": "Touchpoint Support <support@zurai02.dev>",
+  "license": "MIT",
+  "homepage": "https://github.com/touchpoint/titanbot#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/touchpoint/titanbot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/touchpoint/titanbot/issues"
+  },
+
+  "keywords": [
+    "discord-bot",
+    "discord-js",
+    "community-bot",
+    "moderation",
+    "economy",
+    "music-bot",
+    "auto-moderation",
+    "leveling",
+    "giveaways",
+    "tickets",
+    "reaction-roles"
+  ],
+
+  "engines": {
+    "node": ">=20.10.0",
+    "npm": ">=10.0.0"
+  },
+
   "scripts": {
     "start": "node src/app.js",
+    "start:prod": "NODE_ENV=production node src/app.js",
+    "start:dev": "NODE_ENV=development node src/app.js",
+    "dev": "node --watch src/app.js",
+    "debug": "node --inspect src/app.js",
+
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix",
+    "format": "prettier --write \"src/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\"",
+
+    "test": "node --test src/**/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage src/**/*.test.js",
+
     "migrate": "node scripts/migrate.js apply",
     "migrate:check": "node scripts/migrate.js check",
     "migrate:status": "node scripts/migrate.js status",
     "migrate:keys": "node scripts/migrate-keys.js",
     "migrate:keys:dry": "node scripts/migrate-keys.js --dry-run",
+    "migrate:rollback": "node scripts/migrate.js rollback",
+    "migrate:fresh": "node scripts/migrate.js fresh",
+
     "backup:db": "node scripts/backup.js",
     "restore:db": "node scripts/restore.js",
-    "backup:drill": "node scripts/restore-drill.js"
+    "backup:drill": "node scripts/restore-drill.js",
+    "backup:schedule": "node scripts/backup.js --cron",
+
+    "deploy:commands": "node scripts/deploy-commands.js",
+    "deploy:commands:global": "node scripts/deploy-commands.js --global",
+    "deploy:commands:guild": "node scripts/deploy-commands.js --guild",
+    "clear:commands": "node scripts/deploy-commands.js --clear",
+
+    "health:check": "node scripts/health-check.js",
+    "status:report": "node scripts/status-report.js",
+
+    "docker:build": "docker build -t titanbot:latest .",
+    "docker:run": "docker run -d --name titanbot --env-file .env titanbot:latest",
+    "docker:compose": "docker-compose up -d",
+    "docker:logs": "docker logs -f titanbot",
+
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop titanbot",
+    "pm2:restart": "pm2 restart titanbot",
+    "pm2:logs": "pm2 logs titanbot",
+
+    "setup": "node scripts/setup.js",
+    "setup:env": "node scripts/setup.js --env-only",
+    "setup:db": "node scripts/setup.js --db-only",
+
+    "update:check": "npm outdated",
+    "update:deps": "npm update",
+    "update:deps:major": "npx npm-check-updates -u && npm install",
+
+    "clean": "rm -rf node_modules package-lock.json",
+    "clean:logs": "rm -rf logs/*.log logs/*.gz",
+    "clean:cache": "rm -rf .cache tmp/",
+    "clean:all": "npm run clean && npm run clean:logs && npm run clean:cache",
+
+    "prepare": "husky install || true"
   },
+
   "dependencies": {
     "@discordjs/rest": "^2.6.1",
+    "@discordjs/voice": "^0.18.0",
     "axios": "^1.15.2",
+    "bufferutil": "^4.0.9",
     "discord.js": "^14.26.4",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
     "node-cron": "^4.2.1",
     "pg": "^8.11.3",
+    "pg-pool": "^3.7.0",
+    "riffy": "1.0.12",
+    "utf-8-validate": "^6.0.5",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "zod": "^3.25.76",
-    "riffy": "1.0.12"
+    "zlib-sync": "^0.1.10",
+    "zod": "^3.25.76"
   },
-  "engines": {
-    "node": ">=20.10.0"
+
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "eslint": "^9.25.0",
+    "eslint-config-prettier": "^10.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "husky": "^9.1.0",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.5.0"
   },
+
+  "optionalDependencies": {
+    "erlpack": "discord/erlpack"
+  },
+
   "overrides": {
     "form-data": "^4.0.6",
     "undici": "^6.27.0"
