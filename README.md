@@ -7,7 +7,7 @@
 
 <p align="center">
   <img src="https://komarev.com" alt="zurai02's Profile Views" />
-  <a href="https://roblox.com"><img src="https://shields.io" alt="DevForum Profile"></a>
+  <a href="[https://devloperroblox.com](https://devforum.roblox.com/)"><img src="https://shields.io" alt="DevForum Profile"></a>
 </p>
 
 ---
