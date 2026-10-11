@@ -1,7 +1,3 @@
-<img width="399" height="300" alt="images" src="https://github.com/user-attachments/assets/13c320e4-0e43-47a9-b9ba-015795c4ab93" />
-
-
-
 <img width="854" height="130" alt="upper-asset" src="https://github.com/user-attachments/assets/0ba54ef0-0724-413e-a303-2834cf7fc79f" />
 
 <img width="800" height="50" alt="zurai02-typing (1)" src="https://github.com/user-attachments/assets/c850244d-4fe2-4b66-a3d1-8448dc6112cc" />
@@ -24,7 +20,10 @@ I am a Roblox developer specializing in backend systems, secure data handling, a
 
 ### Portfolio
 
- 
+ <a href="https://zurai02.github.io" target="_blank" rel="noopener noreferrer">
+  <img width="399" height="300" alt="Portfolio" src="https://github.com/user-attachments/assets/13c320e4-0e43-47a9-b9ba-015795c4ab93" />
+</a>
+
 
 ---
 
