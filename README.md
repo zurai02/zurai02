@@ -1,61 +1,10 @@
 <img width="399" height="300" alt="images" src="https://github.com/user-attachments/assets/13c320e4-0e43-47a9-b9ba-015795c4ab93" />
 
-<img width="800" height="50" alt="zurai02-typing (1)" src="https://github.com/user-attachments/assets/c850244d-4fe2-4b66-a3d1-8448dc6112cc" /><!-- https://github.com/DenverCoder1/readme-typing-svg/ -->
-<svg xmlns='http://www.w3.org/2000/svg'
-    xmlns:xlink='http://www.w3.org/1999/xlink'
-    viewBox='0 0 800 50'
-    style='background-color: #00000000;'
-    width='800px' height='50px'>
-
-
-                <path id='path0'>
-                            <!-- Single line -->
-                                <animate id='d0' attributeName='d' begin='0s;d2.end'
-                    dur='4800ms' fill='remove'
-                    values='m0,25 h0 ; m0,25 h800 ; m0,25 h800 ; m0,25 h0' keyTimes='0;0.66666666666667;0.83333333333333;1' />
-                    </path>
-    <text font-family='"Monospace", monospace' fill='#00ffaa' font-size='30'
-        dominant-baseline='middle'
-        x='50%' text-anchor='middle'
-        letter-spacing='normal'>
-        <textPath xlink:href='#path0'>
-            zurai02 HERE!
-        </textPath>
-    </text>
-        <path id='path1'>
-                            <!-- Single line -->
-                                <animate id='d1' attributeName='d' begin='d0.end'
-                    dur='4800ms' fill='remove'
-                    values='m0,25 h0 ; m0,25 h800 ; m0,25 h800 ; m0,25 h0' keyTimes='0;0.66666666666667;0.83333333333333;1' />
-                    </path>
-    <text font-family='"Monospace", monospace' fill='#00ffaa' font-size='27'
-        dominant-baseline='middle'
-        x='50%' text-anchor='middle'
-        letter-spacing='normal'>
-        <textPath xlink:href='#path1'>
-             Creator | Innovator | Optimizer | Scripter and Coder
-        </textPath>
-    </text>
-        <path id='path2'>
-                            <!-- Single line -->
-                                <animate id='d2' attributeName='d' begin='d1.end'
-                    dur='4800ms' fill='remove'
-                    values='m0,25 h0 ; m0,25 h800 ; m0,25 h800 ; m0,25 h0' keyTimes='0;0.66666666666667;0.83333333333333;1' />
-                    </path>
-    <text font-family='"Monospace", monospace' fill='#00ffaa' font-size='30'
-        dominant-baseline='middle'
-        x='50%' text-anchor='middle'
-        letter-spacing='normal'>
-        <textPath xlink:href='#path2'>
-            Always Building Something New
-        </textPath>
-    </text>
-</svg>
-
 
 
 <img width="854" height="130" alt="upper-asset" src="https://github.com/user-attachments/assets/0ba54ef0-0724-413e-a303-2834cf7fc79f" />
 
+<img width="800" height="50" alt="zurai02-typing (1)" src="https://github.com/user-attachments/assets/c850244d-4fe2-4b66-a3d1-8448dc6112cc" />
 
 
 # 🛠️ Luau & Lua Systems Engineer | zurai02 👋
@@ -72,6 +21,10 @@ I am a Roblox developer specializing in backend systems, secure data handling, a
 
 - 💬 **Ask me about:** Roblox Luau, Client-Server Replication, Object-Oriented Programming (OOP).
 - ⚙️ **Workflow Tools:** Roblox Studio, VS Code, Git, Rojo.
+
+### Portfolio
+
+ 
 
 ---
 
