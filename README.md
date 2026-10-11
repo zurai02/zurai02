@@ -3,7 +3,7 @@
 <img width="800" height="50" alt="zurai02-typing (1)" src="https://github.com/user-attachments/assets/c850244d-4fe2-4b66-a3d1-8448dc6112cc" />
 
 
-# 🛠️ Luau & Lua Systems Engineer | zurai02 👋
+# Luau & Lua Systems Engineer | zurai02 
 
 <p align="center">
   <img src="https://komarev.com" alt="zurai02's Profile Views" />
@@ -12,7 +12,7 @@
 
 ---
 
-### 🚀 About Me
+### About Me
 I am a Roblox developer specializing in backend systems, secure data handling, and optimized network structures. I write clean, modular, and memory-efficient **Luau** code designed to scale seamlessly in large-scale experiences.
 
 - 💬 **Ask me about:** Roblox Luau, Client-Server Replication, Object-Oriented Programming (OOP).
@@ -27,7 +27,7 @@ I am a Roblox developer specializing in backend systems, secure data handling, a
 
 ---
 
-### 💻 Code Architecture Showcases
+### Code Architecture Showcases
 *Since this is my primary portfolio page, here are the direct implementation structures of systems I design:*
 
 #### 1. Modern ModuleScript Pattern (OOP)
@@ -79,7 +79,7 @@ end)
 
 ---
 
-### 📊 Live GitHub Analytics
+### Live GitHub Analytics
 
 <p align="center">
   <img src="https://vercel.app" alt="zurai02's GitHub stats" height="160" />
@@ -88,9 +88,9 @@ end)
 
 ---
 
-### 🔗 Let's Connect
-* 🌐 **Roblox Developer Forum:** Check my community updates on the [Roblox DevForum Profile](https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442)
-* 💼 **Availability:** Open for freelance script optimization, framework design, and game system engineering.
+### Let's Connect
+*  **Roblox Developer Forum:** Check my community updates on the [Roblox DevForum Profile](https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442)
+* **Availability:** Open for freelance script optimization, framework design, and game system engineering.
 
 
 <img width="854" height="120" alt="asets" src="https://github.com/user-attachments/assets/b3541b3f-bf98-410d-9209-1e5f846a2394" />
