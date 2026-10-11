@@ -1,4 +1,5 @@
-<img width="854" height="130" alt="upper-asset" src="https://github.com/user-attachments/assets/2ce5216a-c109-420e-9b6b-99738a60a270" 
+<img width="854" height="120" alt="asets" src="[https://githb.com/user-attachments/assets/b3541b3f-bf98-410d-9209-1e5f846a2394](https://github.com/user-attachments/assets/2ce5216a-c109-420e-9b6b-99738a60a270)" />
+
 
 # 🛠️ Luau & Lua Systems Engineer | zurai02 👋
 
