@@ -15,12 +15,12 @@
 ### About Me
 I am a Roblox developer specializing in backend systems, secure data handling, and optimized network structures. I write clean, modular, and memory-efficient **Luau** code designed to scale seamlessly in large-scale experiences.
 
-- 💬 **Ask me about:** Roblox Luau, Client-Server Replication, Object-Oriented Programming (OOP).
-- ⚙️ **Workflow Tools:** Roblox Studio, VS Code, Git, Rojo.
+- **Ask me about:** Roblox Luau, Client-Server Replication, Object-Oriented Programming (OOP).
+- **Workflow Tools:** Roblox Studio, VS Code, Git, Rojo.
 
 ### Portfolio
 
- <a href="https://zurai02.github.io" target="_blank" rel="noopener noreferrer">
+ <a href="https://zurai02.is-a.dev" target="_blank" rel="noopener noreferrer">
   <img width="399" height="300" alt="Portfolio" src="https://github.com/user-attachments/assets/13c320e4-0e43-47a9-b9ba-015795c4ab93" />
 </a>
 
