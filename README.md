@@ -1,6 +1,6 @@
-<img width="1100" height="130" alt="banner-orange (4)" src="https://github.com/user-attachments/assets/b1e0b636-682f-43fd-82a2-b4b38d9926d3" />
+<img width="854" height="130" alt="banner-orange (4)" src="https://github.com/user-attachments/assets/b1e0b636-682f-43fd-82a2-b4b38d9926d3" />
 
-<img width="1000" height="50" alt="typing-banner-orange (3)" src="https://github.com/user-attachments/assets/25188059-4725-48ea-ab2d-d6e14cddb6f9" />
+<img width="800" height="50" alt="typing-banner-orange (3)" src="https://github.com/user-attachments/assets/25188059-4725-48ea-ab2d-d6e14cddb6f9" />
 
 
 ---
