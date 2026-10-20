@@ -1,6 +1,8 @@
-<img width="854" height="130" alt="banner-orange (3)" src="https://github.com/user-attachments/assets/cd253dd9-7d34-49a9-bbfc-bbc0c1443d03" />
+<img width="800" height="50" alt="typing-banner-orange (2)" src="https://github.com/user-attachments/assets/903ae8a0-d113-45e7-bfcb-4815b689cee6" /><img width="854" height="130" alt="banner-orange (3)" src="https://github.com/user-attachments/assets/cd253dd9-7d34-49a9-bbfc-bbc0c1443d03" />
 
-<img width="800" height="50" alt="typing-banner-orange (1)" src="https://github.com/user-attachments/assets/43002351-a699-45c7-ab9d-eb0a104015e9" />
+![Uploadin<!-- https://github.com/DenverCoder1/readme-typing-svg/ -->
+g typing-banner-orange (2).svg…]()
+
 ---
 
 ### About Me
