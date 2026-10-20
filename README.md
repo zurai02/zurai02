@@ -15,7 +15,10 @@
   <a href="https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Roblox%20DevForum-zurai02-00A2FF?style=flat-square&logo=roblox&logoColor=white" alt="DevForum Profile" />
   </a>
-  <img src="https://komarev.com/ghpvc/?username=zurai02&color=FF6B35&style=flat-square&label=Profile+Views" alt="Profile Views" />
+  <a href="https://github.com/zurai02" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/GitHub-zurai02-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub Profile" />
+  </a>
+  <img src="https://hits.sh/github.com/zurai02.svg?style=flat-square&label=Profile+Views&color=ff6b35&logo=github" alt="Profile Views" />
 </p>
 
 ---
@@ -93,6 +96,9 @@ end)
 <p align="center">
   <img src="https://github-readme-stats.vercel.app/api?username=zurai02&show_icons=true&title_color=FF6B35&text_color=5B514B&icon_color=FF6B35&bg_color=FFF7F2&hide_border=true&border_radius=12" alt="zurai02's GitHub stats" height="165" />
   <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=zurai02&layout=compact&title_color=FF6B35&text_color=5B514B&bg_color=FFF7F2&hide_border=true&border_radius=12&langs_count=6" alt="Top Languages" height="165" />
+</p>
+<p align="center">
+  <img src="https://streak-stats.demolab.com/?user=zurai02&background=FFF7F2&border=FFF7F2&stroke=FF6B35&ring=FF6B35&fire=FF6B35&currStreakNum=FF6B35&sideNums=5B514B&currStreakLabel=5B514B&sideLabels=5B514B&dates=5B514B&hide_border=true&border_radius=12" alt="GitHub Streak Stats" height="165" />
 </p>
 
 ---
