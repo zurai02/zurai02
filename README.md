@@ -12,7 +12,7 @@
   <a href="https://zurai02.is-a.dev" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Website-zurai02.is--a.dev-FF6B35?style=flat-square&logo=google-chrome&logoColor=white" alt="Portfolio Website" />
   </a>
-  <a href="https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442" target="_blank" rel="noopener noreferrer">
+  <a href="https://zurai02.is-a.dev/portfolio" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Roblox%20DevForum-zurai02-00A2FF?style=flat-square&logo=roblox&logoColor=white" alt="DevForum Profile" />
   </a>
   <a href="https://github.com/zurai02" target="_blank" rel="noopener noreferrer">
