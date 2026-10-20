@@ -17,7 +17,7 @@
   </a>
   <a href="https://github.com/zurai02" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/GitHub-zurai02-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub Profile" />
-  ![GitHub Views](https://gitviews.com/user/zurai02.svg?style=modern&label-color=%23ff6b35&color=%23F9FAFB)
+  <img src="https://gitviews.com/user/zurai02.svg?style=modern&label-color=%23ff6b35&color=%23F9FAFB" alt="Github views." />
 
 ---
 
