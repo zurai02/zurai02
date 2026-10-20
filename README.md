@@ -87,4 +87,4 @@ end)
 * **Roblox Developer Forum:** [Roblox DevForum Portfolio](https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442)
 * **Availability:** Open for freelance script optimization, framework design, and game system engineering.
 
-<img width="854" height="120" alt="asets" src="https://github.com/user-attachments/assets/b3541b3f-bf98-410d-9209-1e5f846a2394" />
+<img width="854" height="120" alt="footer-wave-orange" src="https://github.com/user-attachments/assets/497a3376-4754-4f10-a262-c330a31c3e43" />
