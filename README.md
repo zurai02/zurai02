@@ -2,12 +2,16 @@
 
 <img width="800" height="50" alt="zurai02-typing (1)" src="https://github.com/user-attachments/assets/c850244d-4fe2-4b66-a3d1-8448dc6112cc" />
 
-
-# Luau & Lua Systems Engineer | zurai02 
+# Luau & Lua Systems Engineer | zurai02
 
 <p align="center">
-  <img src="https://komarev.com" alt="zurai02's Profile Views" />
-  <a href="[https://devloperroblox.com](https://devforum.roblox.com/)"><img src="https://shields.io" alt="DevForum Profile"></a>
+  <a href="https://zurai02.is-a.dev" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Website-zurai02.is--a.dev-ff6b00?style=flat-square&logo=google-chrome&logoColor=white" alt="Portfolio Website" />
+  </a>
+  <a href="https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Roblox%20DevForum-zurai02-00A2FF?style=flat-square&logo=roblox&logoColor=white" alt="DevForum Profile" />
+  </a>
+  <img src="https://komarev.com/ghpvc/?username=zurai02&color=orange&style=flat-square&label=Profile+Views" alt="zurai02's Profile Views" />
 </p>
 
 ---
@@ -20,10 +24,11 @@ I am a Roblox developer specializing in backend systems, secure data handling, a
 
 ### Portfolio
 
- <a href="https://zurai02.is-a.dev" target="_blank" rel="noopener noreferrer">
-  <img width="399" height="300" alt="Portfolio" src="https://github.com/user-attachments/assets/13c320e4-0e43-47a9-b9ba-015795c4ab93" />
+<a href="https://zurai02.is-a.dev" target="_blank" rel="noopener noreferrer">
+  <img width="399" height="300" alt="Portfolio Preview" src="https://github.com/user-attachments/assets/13c320e4-0e43-47a9-b9ba-015795c4ab93" />
 </a>
 
+Visit the live site: **[zurai02.is-a.dev](https://zurai02.is-a.dev)**
 
 ---
 
@@ -82,15 +87,15 @@ end)
 ### Live GitHub Analytics
 
 <p align="center">
-  <img src="https://vercel.app" alt="zurai02's GitHub stats" height="160" />
-  <img src="https://vercel.app" alt="Top Langs" height="160" />
+  <img src="https://github-readme-stats.vercel.app/api?username=zurai02&show_icons=true&theme=tokyonight" alt="zurai02's GitHub stats" height="160" />
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=zurai02&layout=compact&theme=tokyonight" alt="Top Languages" height="160" />
 </p>
 
 ---
 
 ### Let's Connect
-*  **Roblox Developer Forum:** Check my community updates on the [Roblox DevForum Profile](https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442)
+* **Website & Portfolio:** [zurai02.is-a.dev](https://zurai02.is-a.dev)
+* **Roblox Developer Forum:** [Roblox DevForum Portfolio](https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442)
 * **Availability:** Open for freelance script optimization, framework design, and game system engineering.
-
 
 <img width="854" height="120" alt="asets" src="https://github.com/user-attachments/assets/b3541b3f-bf98-410d-9209-1e5f846a2394" />
