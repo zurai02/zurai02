@@ -17,7 +17,9 @@
   </a>
   <a href="https://github.com/zurai02" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/GitHub-zurai02-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub Profile" />
-  <img src="https://gitviews.com/user/zurai02.svg?style=modern&label-color=%23ff6b35&color=%23F9FAFB" alt="Github views." />
+  </a>
+  <img src="https://gitviews.com/user/zurai02.svg?style=flat-square&label-color=%23555555&color=%23ff6b35" alt="Profile Views" />
+</p>
 
 ---
 
@@ -92,18 +94,30 @@ end)
 ### Live GitHub Analytics
 
 <p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=zurai02&show_icons=true&title_color=FF6B35&text_color=5B514B&icon_color=FF6B35&bg_color=FFF7F2&hide_border=true&border_radius=12" alt="zurai02's GitHub stats" height="165" />
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=zurai02&layout=compact&title_color=FF6B35&text_color=5B514B&bg_color=FFF7F2&hide_border=true&border_radius=12&langs_count=6" alt="Top Languages" height="165" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api?username=zurai02&show_icons=true&title_color=FF6B35&text_color=E5E7EB&icon_color=FF6B35&bg_color=00000000&border_color=FF6B354D&border_radius=12" />
+    <source media="(prefers-color-scheme: light)" srcset="https://github-readme-stats.vercel.app/api?username=zurai02&show_icons=true&title_color=FF6B35&text_color=374151&icon_color=FF6B35&bg_color=00000000&border_color=FF6B354D&border_radius=12" />
+    <img src="https://github-readme-stats.vercel.app/api?username=zurai02&show_icons=true&title_color=FF6B35&text_color=374151&icon_color=FF6B35&bg_color=00000000&border_color=FF6B354D&border_radius=12" alt="zurai02's GitHub stats" height="165" />
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=zurai02&layout=compact&title_color=FF6B35&text_color=E5E7EB&bg_color=00000000&border_color=FF6B354D&border_radius=12&langs_count=6" />
+    <source media="(prefers-color-scheme: light)" srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=zurai02&layout=compact&title_color=FF6B35&text_color=374151&bg_color=00000000&border_color=FF6B354D&border_radius=12&langs_count=6" />
+    <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=zurai02&layout=compact&title_color=FF6B35&text_color=374151&bg_color=00000000&border_color=FF6B354D&border_radius=12&langs_count=6" alt="Top Languages" height="165" />
+  </picture>
 </p>
 <p align="center">
-  <img src="https://streak-stats.demolab.com/?user=zurai02&background=FFF7F2&border=FFF7F2&stroke=FF6B35&ring=FF6B35&fire=FF6B35&currStreakNum=FF6B35&sideNums=5B514B&currStreakLabel=5B514B&sideLabels=5B514B&dates=5B514B&hide_border=true&border_radius=12" alt="GitHub Streak Stats" height="165" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://streak-stats.demolab.com/?user=zurai02&background=00000000&border=FF6B354D&stroke=FF6B35&ring=FF6B35&fire=FF6B35&currStreakNum=FF6B35&sideNums=E5E7EB&currStreakLabel=9CA3AF&sideLabels=9CA3AF&dates=9CA3AF&border_radius=12" />
+    <source media="(prefers-color-scheme: light)" srcset="https://streak-stats.demolab.com/?user=zurai02&background=00000000&border=FF6B354D&stroke=FF6B35&ring=FF6B35&fire=FF6B35&currStreakNum=FF6B35&sideNums=374151&currStreakLabel=4B5563&sideLabels=4B5563&dates=6B7280&border_radius=12" />
+    <img src="https://streak-stats.demolab.com/?user=zurai02&background=00000000&border=FF6B354D&stroke=FF6B35&ring=FF6B35&fire=FF6B35&currStreakNum=FF6B35&sideNums=374151&currStreakLabel=4B5563&sideLabels=4B5563&dates=6B7280&border_radius=12" alt="GitHub Streak Stats" height="165" />
+  </picture>
 </p>
 
 ---
 
 ### Let's Connect
 * **Website & Portfolio:** [zurai02.is-a.dev](https://zurai02.is-a.dev)
-* **Roblox Developer Forum:** [Roblox DevForum Portfolio](https://devforum.roblox.com/t/zurai02-scripting-portfolio/4679442)
+* **Roblox Developer Forum:** [Roblox DevForum Portfolio](https://zurai02.is-a.dev/portfolio)
 * **Availability:** Open for freelance script optimization, framework design, and game system engineering.
 
 <p align="center">
