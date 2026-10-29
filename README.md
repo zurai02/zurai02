@@ -26,8 +26,6 @@
 ### About Me
 I am a Roblox developer specializing in backend systems, secure data handling, and optimized network structures. I write clean, modular, and memory-efficient **Luau** code designed to scale seamlessly in large-scale experiences.
 
-<iframe width="110" height="200" src="https://www.myinstants.com/instant/why-are-you-running-15312/embed/" frameborder="0" scrolling="no"></iframe>
-
 - **Ask me about:** Roblox Luau, Client-Server Replication, Object-Oriented Programming (OOP).
 - **Workflow Tools:** Roblox Studio, VS Code, Git, Rojo.
 
