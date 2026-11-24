@@ -15,7 +15,7 @@
   <a href="https://zurai02.is-a.dev/portfolio" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Roblox%20DevForum-zurai02-00A2FF?style=flat-square&logo=roblox&logoColor=white" alt="DevForum Profile" />
   </a>
-  <a href="https://github.com/zurai02" target="_blank" rel="noopener noreferrer">
+  <a href="https://zurai02.is-a.dev/github" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/GitHub-zurai02-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub Profile" />
   </a>
   <img src="https://gitviews.com/user/zurai02.svg?style=flat-square&label-color=%23555555&color=%23ff6b35" alt="Profile Views" />
